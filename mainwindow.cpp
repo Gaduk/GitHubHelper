@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <QtNetwork>
+#include <QtWidgets/QFileDialog>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -9,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //ui->tableWidget->setSelectionMode(QAbstractItemView::MultiSelection);
 }
 
 MainWindow::~MainWindow()
@@ -19,7 +21,35 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_saveButton_clicked()
 {
+    QString username = ui->nameEdit->text();
+    QTableWidget* table = ui->tableWidget;
+    QList<QTableWidgetItem*> selectedItems = table->selectedItems();
 
+    //QString savePath = "C:/Users/Даниил/Downloads/" + repoName + ".zip";
+    QString savePath = QFileDialog::getSaveFileName(nullptr, "Save", "", "ZIP Files (*.zip)");
+    qDebug() << savePath;
+
+    if(!savePath.isEmpty()) {
+        for(auto item : selectedItems)
+        {
+            QString repoName = item->text();
+            QUrl url("https://api.github.com/repos/" + username + "/"+ repoName + "/zipball"); //скачивает только ветку main
+            QNetworkRequest request(url);
+            QNetworkReply *reply = networkManager.get(request);
+            QObject::connect(reply, &QNetworkReply::finished, [=]() {
+                if (reply->error() == QNetworkReply::NoError) {
+                    QFile file(savePath + "/" + repoName + ".zip");
+                    if (file.open(QIODevice::WriteOnly)) {
+                        file.write(reply->readAll()); // Запись данных архива в файл
+                        file.close();
+                        qDebug() << "Archive is saved at " << savePath;
+                    }
+                    else qDebug() << "Error: file is not saved";
+                }
+                else qDebug() << "Error: " << reply->errorString();
+            });
+        }
+    }
 }
 
 void MainWindow::on_findButton_clicked()
