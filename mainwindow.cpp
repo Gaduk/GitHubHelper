@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include <QtNetwork>
 #include <QtWidgets/QFileDialog>
+#include <qgithubapi.h>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,12 +23,25 @@ MainWindow::~MainWindow()
 void MainWindow::on_saveButton_clicked()
 {
     QString username = ui->nameEdit->text();
-    QTableWidget* table = ui->tableWidget;
-    QList<QTableWidgetItem*> selectedItems = table->selectedItems();
-    QString repoName = selectedItems[0]->text();
+    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
 
+    if(!selectedItems.isEmpty())
+    {
+        QString repoName = selectedItems[0]->text();
+        download_repository(username, repoName);
+    }
+}
+
+void MainWindow::on_findButton_clicked()
+{
+    QString username = ui->nameEdit->text();
+    set_repository_list(get_repository_list(username));
+    //set_user_data(get_user_data(username));
+}
+
+void MainWindow::download_repository(QString username, QString repoName)
+{
     QString savePath = QFileDialog::getSaveFileName(nullptr, "Save", repoName, "ZIP Files (*.zip)");
-    qDebug() << savePath;
 
     if(!savePath.isEmpty()) {
         QUrl url("https://api.github.com/repos/" + username + "/"+ repoName + "/zipball"); //скачивает только ветку main
@@ -47,50 +61,56 @@ void MainWindow::on_saveButton_clicked()
         });
     }
 }
-
-void MainWindow::on_findButton_clicked()
+void MainWindow::set_repository_list(QJsonArray repositories_data)
 {
-    // Никнейм пользователя на GitHub
-    QString username = ui->nameEdit->text();
+    int rowIndex = 0;
+    QTableWidget* table = ui->tableWidget;
+    table->clearContents();
+    table->setRowCount(0);
+    for (const QJsonValue &repoValue : repositories_data) {
+        QJsonObject repoObject = repoValue.toObject();
+        QString repoName = repoObject["name"].toString();
+        qDebug() << "Repository Name: " << repoName;
 
-    // Создание URL для запроса к API GitHub
+        QTableWidgetItem *itemName = new QTableWidgetItem(repoName);
+        table->insertRow(rowIndex);
+        table->setItem(rowIndex, 0, itemName);
+    }
+}
+void MainWindow::set_user_data(QJsonArray user_data)
+{
+
+}
+QJsonArray MainWindow::get_repository_list(QString username)
+{
     QUrl url("https://api.github.com/users/" + username + "/repos");
+    return get_data(url);
 
-    // Выполнение GET-запроса к API GitHub
+}
+QJsonArray MainWindow::get_user_data(QString username)
+{
+    QUrl url("https://api.github.com/users/" + username);
+    return get_data(url);
+}
+QJsonArray MainWindow::get_data(QUrl url)
+{
     QNetworkRequest request(url);
 
-    QString accessToken = "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";
+    QString accessToken = "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";
     request.setRawHeader("Authorization", ("Bearer " + accessToken).toUtf8());
 
     QNetworkReply *reply = networkManager.get(request);
-
-    // Обработка ответа на запрос
-    QObject::connect(reply, &QNetworkReply::finished, [=]() {
-        if (reply->error() == QNetworkReply::NoError) {
-            // Обработка данных JSON из ответа
+    QJsonArray json_array;
+    QObject::connect(reply, &QNetworkReply::finished, [=, &json_array]() {
+        if(reply->error() == QNetworkReply::NoError) {
             QByteArray responseData = reply->readAll();
             QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
-            if (jsonDoc.isArray()) {
-                QJsonArray repoArray = jsonDoc.array();
-                int rowIndex = 0;
-                QTableWidget* table = ui->tableWidget;
-                table->clearContents();
-                table->setRowCount(0);
-                foreach (const QJsonValue &repoValue, repoArray) {
-                    QJsonObject repoObject = repoValue.toObject();
-                    QString repoName = repoObject["name"].toString();
-                    qDebug() << "Repository Name: " << repoName;
-
-                    QTableWidgetItem *itemName = new QTableWidgetItem(repoName);
-
-                    ui->tableWidget->insertRow(rowIndex);
-                    table->setItem(rowIndex, 0, itemName);
-                }
-            }
-        } else {
-            qDebug() << "Error: " << reply->errorString();
+            json_array = jsonDoc.array();
         }
+        else qDebug() << "Error: " << reply->errorString();
         reply->deleteLater();
     });
+    return json_array;
 }
+
 
