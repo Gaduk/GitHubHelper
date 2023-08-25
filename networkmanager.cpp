@@ -7,12 +7,12 @@ NetworkManager::NetworkManager()
 
 }
 
-void NetworkManager::downloadRepository(QString username, QString repoName)
+void NetworkManager::downloadRepository(const QString* username, const QString* repoName)
 {
-    QString savePath = QFileDialog::getSaveFileName(nullptr, "Save", repoName, "ZIP Files (*.zip)");
+    QString savePath = QFileDialog::getSaveFileName(nullptr, "Save", *repoName, "ZIP Files (*.zip)");
 
     if(!savePath.isEmpty()) {
-        QUrl url("https://api.github.com/repos/" + username + "/"+ repoName + "/zipball"); //скачивает только ветку main
+        QUrl url("https://api.github.com/repos/" + *username + "/" + *repoName + "/zipball"); //скачивает только ветку main
         QNetworkRequest request(url);
         QNetworkReply *reply = networkAccessManager.get(request);
         QObject::connect(reply, &QNetworkReply::finished, [=]() {
@@ -29,14 +29,19 @@ void NetworkManager::downloadRepository(QString username, QString repoName)
         });
     }
 }
-std::unique_ptr<QJsonDocument> NetworkManager::getRepositoriesData(QString* username)
+std::shared_ptr<QJsonDocument> NetworkManager::getRepositoriesData(const QString* username)
 {
     QString url = "https://api.github.com/users/" + *username + "/repos";
     return getData(&url);
 }
-std::unique_ptr<QJsonDocument> NetworkManager::getData(QString *url)
+std::shared_ptr<QJsonDocument> NetworkManager::getUserData(const QString* username)
 {
-    std::unique_ptr<QJsonDocument>data{};
+    QString url = "https://api.github.com/users/" + *username;
+    return getData(&url);
+}
+std::shared_ptr<QJsonDocument> NetworkManager::getData(const QString* url)
+{
+    std::shared_ptr<QJsonDocument>data;
 
     QNetworkRequest request(*url);
 
@@ -50,7 +55,7 @@ std::unique_ptr<QJsonDocument> NetworkManager::getData(QString *url)
     if (reply->error() == QNetworkReply::NoError) {
         QByteArray responseData = reply->readAll();
         QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
-        data.reset(new QJsonDocument{jsonDocument});
+        data = std::make_unique<QJsonDocument>(jsonDocument);
     }
     else qDebug() << "Error: " << reply->errorString();
     reply->deleteLater();

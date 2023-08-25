@@ -26,8 +26,8 @@ private:
     Ui::MainWindow *ui;
     NetworkManager networkManager;
 
-    void setRepositoriesData(std::unique_ptr<QJsonDocument> repositoriesData);
-    void set_user_data(std::unique_ptr<QJsonDocument> user_data);
+    void setRepositoriesData(std::shared_ptr<QJsonDocument> repositoriesData);
+    void setUserData(std::shared_ptr<QJsonDocument> userData);
 
 
 

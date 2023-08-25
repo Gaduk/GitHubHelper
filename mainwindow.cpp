@@ -21,17 +21,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_saveButton_clicked()
 {
-    //download_repository();
+    QString username = ui->nameEdit->text();
+    QString repoName = ui->tableWidget->selectedItems()[0]->text();
+    networkManager.downloadRepository(&username, &repoName);
 }
 
 void MainWindow::on_findButton_clicked()
 {
     QString username = ui->nameEdit->text();
-    setRepositoriesData(networkManager.getRepositoriesData(&username));
-    //set_user_data(get_user_data(&username));
+
+    std::shared_ptr<QJsonDocument> repositoriesData = networkManager.getRepositoriesData(&username);
+    if(repositoriesData != nullptr)
+        setRepositoriesData(repositoriesData);
+
+    std::shared_ptr<QJsonDocument> userData = networkManager.getUserData(&username);
+    if(userData != nullptr)
+        setUserData(userData);
 }
 
-void MainWindow::setRepositoriesData(std::unique_ptr<QJsonDocument> repositoriesData) {
+void MainWindow::setRepositoriesData(std::shared_ptr<QJsonDocument> repositoriesData)
+{
     QJsonArray repoArray = repositoriesData->array();
     int rowIndex = 0;
     QTableWidget* table = ui->tableWidget;
@@ -48,5 +57,16 @@ void MainWindow::setRepositoriesData(std::unique_ptr<QJsonDocument> repositories
         table->setItem(rowIndex, 0, itemName);
     }
 }
+void MainWindow::setUserData(std::shared_ptr<QJsonDocument> userData)
+{
+    QJsonObject jsonObject = userData->object();
+    QString username = jsonObject["login"].toString();
+    QString avatarUrl = jsonObject["avatar_url"].toString();
+    QByteArray avatarByteArray = networkManager.getData(&avatarUrl)->toJson();
+    QPixmap pixmap;
+    pixmap.loadFromData(avatarByteArray);
 
+    ui->username->setText(username);
+    ui->avatar->setPixmap(pixmap);
+}
 

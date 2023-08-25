@@ -8,13 +8,14 @@ class NetworkManager
 public:
     NetworkManager();
 
-    void downloadRepository(QString username, QString repoName);
-    std::unique_ptr<QJsonDocument> getRepositoriesData(QString* username);
-    std::unique_ptr<QJsonDocument> getUserData(QString* username);
+    void downloadRepository(const QString* username, const QString* repoName);
+    std::shared_ptr<QJsonDocument> getRepositoriesData(const QString* username);
+    std::shared_ptr<QJsonDocument> getUserData(const QString* username);
+    std::shared_ptr<QJsonDocument> getData(const QString *url);
 
 private:
     QNetworkAccessManager networkAccessManager;
-    std::unique_ptr<QJsonDocument> getData(QString *url);
+
 };
 
 #endif // NETWORKMANAGER_H
