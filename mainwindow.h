@@ -1,8 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "networkmanager.h"
 #include <QMainWindow>
 #include <QtNetwork>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,21 +20,16 @@ public:
 
 private slots:
     void on_saveButton_clicked();
-
     void on_findButton_clicked();
 
 private:
     Ui::MainWindow *ui;
-    // Создание объекта для выполнения HTTP-запросов
-    QNetworkAccessManager networkManager;
+    NetworkManager networkManager;
 
-    void download_repository(QString username, QString repoName);
-    void set_repository_list(QJsonArray repositories_data);
-    void set_user_data(QJsonArray user_data);
+    void setRepositoriesData(std::unique_ptr<QJsonDocument> repositoriesData);
+    void set_user_data(std::unique_ptr<QJsonDocument> user_data);
 
-    QJsonArray get_data(QUrl url);
-    QJsonArray get_repository_list(QString username);
-    QJsonArray get_user_data(QString username);
+
 
 };
 #endif // MAINWINDOW_H

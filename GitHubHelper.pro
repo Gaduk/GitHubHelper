@@ -11,10 +11,12 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    networkmanager.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    networkmanager.h
 
 FORMS += \
     mainwindow.ui
