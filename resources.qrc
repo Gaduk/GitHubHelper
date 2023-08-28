@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/res">
         <file>res/GitHubLogo.jpg</file>
+        <file>res/GitHubLogo.svg</file>
     </qresource>
 </RCC>

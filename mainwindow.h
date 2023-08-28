@@ -25,10 +25,12 @@ private slots:
 private:
     Ui::MainWindow *ui;
     NetworkManager networkManager;
+    QString username{};
 
-    void setRepositoriesData(std::shared_ptr<QJsonDocument> repositoriesData);
-    void setUserData(std::shared_ptr<QJsonDocument> userData);
-
+    void setRepositoriesData(std::shared_ptr<QByteArray> repositoriesData);
+    void setUserData(std::shared_ptr<QByteArray> userData);
+    void setDefaultUserData();
+    void clearTable();
 
 
 };
