@@ -1,2 +1,2 @@
-# Игнорировать папки "build*"
+# ignore directories "build*"
 build*/

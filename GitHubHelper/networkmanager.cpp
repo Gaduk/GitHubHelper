@@ -46,9 +46,6 @@ std::shared_ptr<QByteArray> NetworkManager::getData(const QString& url)
 
     QNetworkRequest request(url);
 
-    QString accessToken = "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";
-    request.setRawHeader("Authorization", ("Bearer " + accessToken).toUtf8());
-
     QNetworkReply *reply = networkAccessManager.get(request);
     QEventLoop loop;
     QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
