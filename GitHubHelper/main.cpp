@@ -12,8 +12,5 @@ int main(int argc, char *argv[])
     w.setWindowIcon(QIcon(":/res/res/GitHubLogo.jpg"));
     w.show();
 
-
-
-
     return a.exec();
 }
